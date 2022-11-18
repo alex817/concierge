@@ -14,6 +14,7 @@ class FCBooker:
 
     def __init__(self, config: FCBookerConfig):
         self.base_url = config.base_url
+        self.facility = config.facility
         self.session = self._create_logged_in_session(config.user, config.password)
         self.token = self._get_request_token()
 
@@ -25,17 +26,17 @@ class FCBooker:
         return session
 
     def _get_request_token(self) -> str:
-        url = f'{self.base_url}/facilities-booking/booking?facility=TEN'
+        url = f'{self.base_url}/facilities-booking/booking?facility={self.facility}'
         response = self.session.get(url)
         return re.search('var token = "([0-9a-zA-Z]+)"', response.text).group(1)
 
     def get_dates(self) -> List[str]:
-        url = f'{self.base_url}/facilitiesBooking/avaliableDates/get?Code=TEN&token={self.token}'
+        url = f'{self.base_url}/facilitiesBooking/avaliableDates/get?Code={self.facility}&token={self.token}'
         response = self.session.get(url)
         return [str(d['DateId']) for d in response.json()['Data']['AvailableDates']]
 
     def get_avail_courts(self, date: str, selected_timeslots: Set[str]) -> List[Tuple[str, List[int]]]:
-        url = f"{self.base_url}/facilitiesBooking/avaliableTime/get?Code=TEN&DateId={date}&token={self.token}"
+        url = f"{self.base_url}/facilitiesBooking/avaliableTime/get?Code={self.facility}&DateId={date}&token={self.token}"
         response = self.session.get(url)
         avail_court_dict = defaultdict(list)
         for timeslot in response.json()['Data']['AvailableTime']:
@@ -59,5 +60,5 @@ class FCBooker:
         url = f'{self.base_url}/facilitiesBooking/booking/create'
         headers = {'Content-type': 'application/x-www-form-urlencoded'}
         response = self.session.post(
-            url, data=f'code=TEN&element={court}&date={date}&time={timeslot}:00&hold=false&token={self.token}', headers=headers)
+            url, data=f'code={self.facility}&element={court}&date={date}&time={timeslot}:00&hold=false&token={self.token}', headers=headers)
         return response.status_code == 200

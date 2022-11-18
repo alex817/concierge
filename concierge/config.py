@@ -11,6 +11,7 @@ class FCBookerConfig:
     user: str
     password: str
     base_url: str = 'https://www.hkfc.com'
+    facility: str = 'TEN'
 
     @staticmethod
     def get_parser():
