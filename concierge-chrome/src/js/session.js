@@ -96,16 +96,18 @@ class FootballClubBooker {
   }
 
   async bookCourt (court, date, timeslot) {
-    const response = await this.client.get(
+    const formdata = qs.stringify({
+      code: this.facility,
+      element: court,
+      date: date,
+      time: timeslot,
+      hold: false,
+      token: this.token,
+    })
+    console.log(formdata)
+    const response = await this.client.post(
       "https://www.hkfc.com/facilitiesBooking/booking/create",
-      qs.stringify({
-        code: this.facility,
-        element: court,
-        date: date,
-        timeslot: timeslot,
-        hold: false,
-        token: this.token,
-      })
+      formdata
     )
     return response.data
   }

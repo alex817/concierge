@@ -1,11 +1,12 @@
 <template>
-  <div id="app">
+  <v-app id="app">
     <nav>
-      <router-link to="/login">Login</router-link> |
-      <router-link to="/booking">Booking</router-link>
+      <router-link to="/">Schedule booking</router-link> |
+      <router-link to="/booking">Booking now</router-link> |
+      <router-link to="/login">Login</router-link>
     </nav>
     <router-view/>
-  </div>
+  </v-app>
 </template>
 
 <script>
