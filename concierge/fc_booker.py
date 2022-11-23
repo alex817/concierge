@@ -3,7 +3,7 @@ import re
 import logging
 
 from collections import defaultdict
-from typing import Set, List, Tuple
+from typing import Optional, Set, List, Tuple
 
 from concierge.config import FCBookerConfig
 
@@ -25,10 +25,13 @@ class FCBooker:
                      data={'username': user, 'password': password}, headers=headers)
         return session
 
-    def _get_request_token(self) -> str:
+    def _get_request_token(self) -> Optional[str]:
         url = f'{self.base_url}/facilities-booking/booking?facility={self.facility}'
         response = self.session.get(url)
-        return re.search('var token = "([0-9a-zA-Z]+)"', response.text).group(1)
+        match = re.search('var token = "([0-9a-zA-Z]+)"', response.text)
+        if match:
+            return match.group(1)
+        return None
 
     def get_dates(self) -> List[str]:
         url = f'{self.base_url}/facilitiesBooking/avaliableDates/get?Code={self.facility}&token={self.token}'
