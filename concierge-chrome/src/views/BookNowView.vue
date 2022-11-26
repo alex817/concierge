@@ -1,6 +1,7 @@
 <template lang="">
     <div>
-    <AvailabilityTable
+    <v-btn @click="getData" :loading="loading.length != 0" small>refresh</v-btn>
+    <BookNowTable
       :availSlots="availSlots"
       :tick="tick"
       :loading="loading.length != 0"
@@ -10,7 +11,6 @@
     <div class="text-center">
     <v-dialog
       v-model="showDialog"
-      max-width="600"
     >
       <v-card>
         <v-card-title class="text-h5 grey lighten-2">
@@ -50,9 +50,9 @@
 </template>
 <script>
 import FootballClubBooker from "@/js/session"
-import AvailabilityTable from "@/components/AvailabilityTable"
+import BookNowTable from "@/components/BookNowTable"
 export default {
-  name: "BookingNowView",
+  name: "BookNowView",
   data: () => ({
     booker: null,
     availSlots: {},
@@ -66,7 +66,7 @@ export default {
     requests: [],
     currentBookings: { 20221201: { "14:00": true } }
   }),
-  components: { AvailabilityTable },
+  components: { BookNowTable },
   methods: {
     getData: function () {
       this.loading.push("date")
@@ -106,6 +106,14 @@ export default {
       this.bookLoading = true
       this.booker.bookCourt(court, this.bookingDetails.date, this.bookingDetails.timeslot).then(
         (response) => {
+          if (this.bookingDetails.date in this.bookingDetails) {
+            const d = {}
+            d[this.bookingDetails.timeslot] = true
+            this.currentBookings[this.bookingDetails.date] = d
+          } else {
+            this.currentBookings[this.bookingDetails.date][this.bookingDetails.timeslot] = true
+          }
+          this.tick++
           console.log(response)
           console.log(`Booked ${this.dialogText}`)
         }

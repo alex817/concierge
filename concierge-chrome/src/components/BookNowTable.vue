@@ -28,7 +28,7 @@
                             <v-progress-circular indeterminate color="primary"
                                 v-else-if="!datesWithAvailableData.includes(date)"></v-progress-circular>
                             <v-icon v-else-if="checkBooking(date, timeslot)" color="blue darken-2">
-                                mdi-check-circle-outline</v-icon>
+                                mdi-alpha-b-circle-outline</v-icon>
                             <v-tooltip v-else-if="availSlots[date][timeslot]['isAvailable']" bottom>
                                 <template v-slot:activator="{ on, attrs }">
                                     <v-icon v-bind="attrs" v-on="on" color="green darken-2"
@@ -49,7 +49,7 @@
 </template>
 <script>
 export default {
-  name: "AvailabilityTable",
+  name: "BookingNowTable",
   props: {
     availSlots: Object,
     availDates: Array,

@@ -1,24 +1,24 @@
 import Vue from "vue"
 import VueRouter from "vue-router"
-import ScheduleBookingView from "../views/ScheduleBookingView"
+import BookLaterView from "../views/BookLaterView"
 
 Vue.use(VueRouter)
 
 const routes = [
   {
     path: "/",
-    name: "scheduleBooking",
-    component: ScheduleBookingView
+    name: "BookLater",
+    component: BookLaterView
   },
   {
     path: "/login",
-    name: "login",
+    name: "Login",
     component: () => import("../views/LoginView.vue")
   },
   {
-    path: "/booking",
-    name: "booking",
-    component: () => import("../views/BookingNowView.vue")
+    path: "/book-now",
+    name: "BookNow",
+    component: () => import("../views/BookNowView.vue")
   },
 ]
 
