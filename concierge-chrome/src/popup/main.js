@@ -2,6 +2,7 @@ import Vue from "vue"
 import App from "./App.vue"
 import Vuetify from "vuetify"
 import router from "../router"
+import store from "@/store"
 import "@mdi/font/css/materialdesignicons.css" // Ensure you are using css-loader
 
 Vue.use(Vuetify)
@@ -10,6 +11,7 @@ Vue.use(Vuetify)
 new Vue({
   router,
   el: "#app",
+  store: store,
   vuetify: new Vuetify({
     icons: {
       iconfont: "mdi", // default - only for display purposes
@@ -17,3 +19,5 @@ new Vue({
   }),
   render: (h) => h(App),
 })
+
+chrome.runtime.connect({ name: "popup" })

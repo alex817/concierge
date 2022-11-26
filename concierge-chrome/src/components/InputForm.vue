@@ -8,7 +8,7 @@
           </v-text-field>
         </v-col>
         <v-col cols="6" md="2">
-          <v-text-field v-model="password" label="Password" required>
+          <v-text-field v-model="password" label="Password" required :type="show1 ? 'text' : 'password'" :append-icon="show1 ? 'mdi-eye' : 'mdi-eye-off'" @click:append="show1 = !show1">
           </v-text-field>
         </v-col>
       </v-row>
@@ -19,7 +19,7 @@
           </v-text-field>
         </v-col>
         <v-col cols="6" md="2">
-          <v-text-field v-model="password2" label="Password" required>
+          <v-text-field v-model="password2" label="Password" required :type="show2 ? 'text' : 'password'" :append-icon="show2 ? 'mdi-eye' : 'mdi-eye-off'" @click:append="show2 = !show2">
           </v-text-field>
         </v-col>
       </v-row>
@@ -43,6 +43,8 @@ export default {
       (v) => !!v || "Name is required",
       (v) => v.length <= 10 || "Name must be less than 10 characters",
     ],
+    show1: false,
+    show2: false,
   }),
   methods: {
     saveLogin: function () {

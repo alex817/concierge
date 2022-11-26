@@ -23,6 +23,7 @@ class FootballClubBooker {
     this.client = wrapper(axios.create({ jar }))
     this.token = null
     this.isLoggedIn = false
+    this.requests = []
   }
 
   async loginWithRetry () {
@@ -36,45 +37,66 @@ class FootballClubBooker {
 
   async login () {
     console.log("try log in")
+    const request = axios.CancelToken.source()
+    this.requests.push(request)
     await this.client
       .post(
         "https://www.hkfc.com/Umbraco/api/Membership/Login",
         qs.stringify({
           username: this.username,
           password: this.password,
-        })
+        }),
+        { cancelToken: request.token }
       )
+    this.requests = this.requests.filter(function (value, index, arr) {
+      return value === request
+    })
     await this.getToken()
   }
 
   async getToken () {
     console.log("try get token")
+    const request = axios.CancelToken.source()
+    this.requests.push(request)
     const response = await this.client
       .get(
-        `https://www.hkfc.com/facilities-booking/booking?facility=${this.facility}`
+        `https://www.hkfc.com/facilities-booking/booking?facility=${this.facility}`,
+        { cancelToken: request.token }
       )
     this.token = response.data.match(/var token = "([0-9a-zA-Z]+)"/)[1]
     this.isLoggedIn = true
     console.log(this.token)
+    this.requests = this.requests.filter(function (value, index, arr) {
+      return value === request
+    })
   }
 
   async getDates () {
     console.log("try get dates")
+    const request = axios.CancelToken.source()
+    this.requests.push(request)
     const response = await this.client.get(
-      `https://www.hkfc.com/facilitiesBooking/avaliableDates/get?Code=${this.facility}&token=${this.token}`
+      `https://www.hkfc.com/facilitiesBooking/avaliableDates/get?Code=${this.facility}&token=${this.token}`,
+      { cancelToken: request.token }
     )
     const dates = []
     for (const date of response.data.Data.AvailableDates) {
       dates.push(date.DateId)
     }
+    this.requests = this.requests.filter(function (value, index, arr) {
+      return value === request
+    })
     return dates
     // return [str(d['DateId']) for d in response.json()['Data']['AvailableDates']]
   }
 
   async getAvailSlots (date) {
     console.log("try get slots")
+    const request = axios.CancelToken.source()
+    this.requests.push(request)
     const response = await this.client.get(
-      `https://www.hkfc.com/facilitiesBooking/avaliableTime/get?Code=${this.facility}&DateId=${date}&token=${this.token}`
+      `https://www.hkfc.com/facilitiesBooking/avaliableTime/get?Code=${this.facility}&DateId=${date}&token=${this.token}`,
+      { cancelToken: request.token }
     )
     const availSlots = []
     for (const time of response.data.Data.AvailableTime) {
@@ -92,10 +114,15 @@ class FootballClubBooker {
         availableCourts: availCourts,
       })
     }
+    this.requests = this.requests.filter(function (value, index, arr) {
+      return value === request
+    })
     return availSlots
   }
 
   async bookCourt (court, date, timeslot) {
+    const request = axios.CancelToken.source()
+    this.requests.push(request)
     const formdata = qs.stringify({
       code: this.facility,
       element: court,
@@ -107,9 +134,30 @@ class FootballClubBooker {
     console.log(formdata)
     const response = await this.client.post(
       "https://www.hkfc.com/facilitiesBooking/booking/create",
-      formdata
+      formdata,
+      { cancelToken: request.token }
     )
+    this.requests = this.requests.filter(function (value, index, arr) {
+      return value === request
+    })
     return response.data
+  }
+
+  async getBookings (startDate, endDate) {
+    const request = axios.CancelToken.source()
+    this.requests.push(request)
+    const response = await this.client.get(
+      `https://www.hkfc.com/facilitiesBooking/booking/history?startDate=${startDate}&endDate=${endDate}`,
+      { cancelToken: request.token }
+    )
+    this.requests = this.requests.filter(function (value, index, arr) {
+      return value === request
+    })
+    return response.data.Data
+  }
+
+  cancelRequests (msg = "") {
+    this.requests.forEach((r) => { r.cancel(msg) })
   }
 }
 export default FootballClubBooker

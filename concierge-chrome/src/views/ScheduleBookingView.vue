@@ -1,20 +1,37 @@
 <template lang="">
     <div>
-        <ScheduleBookingTable v-if="scheduledBookingDetails != {}" :tick="tick" :timeslots="timeslots" :availDates="availDates" :loading="loading" :scheduledBookingDetails="scheduledBookingDetails" @updateBookingSchedule="(date, timeslot) => updateBookingSchedule(date, timeslot)"/>
+        <v-simple-table dense>
+            <template v-slot:default>
+                <thead>
+                    <tr>
+                        <th class="text-left">
+                        </th>
+                        <th v-for="(_, date) in scheduledBookingDetails" :key="date" class="text-left">
+                            {{ date }}
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="timeslot in timeslots" :key="timeslot">
+                        <td >{{ timeslot }}</td>
+                        <td v-for="(_timeslots, date) in scheduledBookingDetails" :key="date">
+                            <v-simple-checkbox @click="updateBookingSchedule(date, timeslot)"
+                                :value="_timeslots[timeslot]" />
+                        </td>
+                    </tr>
+                </tbody>
+            </template>
+        </v-simple-table>
     </div>
 </template>
 <script>
-import ScheduleBookingTable from "@/components/ScheduleBookingTable"
-import FootballClubBooker from "@/js/session"
 export default {
   name: "ScheduleBookingView",
-  components: { ScheduleBookingTable },
   data: () => ({
     availDates: [],
-    timeslots: ["07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"],
+    timeslots: ["07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00"],
     loading: false,
     scheduledBookingDetails: {},
-    tick: 0
   }),
   methods: {
     formatDate: function (date) {
@@ -39,16 +56,18 @@ export default {
     },
     updateBookingSchedule: function (date, timeslot) {
       console.log(date, timeslot)
-      this.scheduledBookingDetails[timeslot][date] = !this.scheduledBookingDetails[timeslot][date]
+      this.scheduledBookingDetails[date][timeslot] = !this.scheduledBookingDetails[date][timeslot]
       this.setBookingSchedule()
     },
     generateSchedule () {
-      for (const timeslot of this.timeslots) {
-        this.scheduledBookingDetails[timeslot] = {}
-        for (const date of this.availDates) {
-          this.scheduledBookingDetails[timeslot][date] = false
+      const d = {}
+      for (const date of this.availDates) {
+        d[date] = {}
+        for (const timeslot of this.timeslots) {
+          d[date][timeslot] = false
         }
       }
+      this.scheduledBookingDetails = d
     },
     mergeSchedules (stale, fresh) {
       const d = {}
@@ -59,43 +78,29 @@ export default {
           d[key] = fresh[key]
         }
       }
-      this.tick++
       return d
     },
     setBookingSchedule () {
-      console.log("set schedule")
       chrome.storage.local.set({ bookingSchedule: this.scheduledBookingDetails })
+    },
+    resetBookingSchedule () {
+      this.generateSchedule()
+      this.setBookingSchedule()
     }
   },
   created () {
     this.availDates = this.getDaysArray(new Date(), 14)
+    console.table(this.availDates)
     chrome.storage.local.get("bookingSchedule", (res) => {
       this.generateSchedule()
+      console.log(this.scheduledBookingDetails)
       if ("bookingSchedule" in res) {
-        console.log(res.bookingSchedule)
         this.scheduledBookingDetails = this.mergeSchedules(res.bookingSchedule, this.scheduledBookingDetails)
-        console.log(this.scheduledBookingDetails)
       }
       this.setBookingSchedule()
+      console.log(this.scheduledBookingDetails)
     })
-    this.loading = true
-    chrome.storage.local.get("login", (res) => {
-      this.booker = new FootballClubBooker(res.login[0].username, res.login[0].password)
-      this.booker.loginWithRetry().then(() => {
-        this.booker.getAvailSlots(this.availDates[1]).then((availSlots) => {
-          this.timeslots = []
-          for (const slot of availSlots) {
-            this.timeslots.push(slot.slot)
-          }
-          this.loading = false
-        })
-      })
-    })
-    // fetch schedule from storage
-
-    // generate new schedule based on current date
-    // merge both schedules
-  }
+  },
 }
 </script>
 <style lang="">
